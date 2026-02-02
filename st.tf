@@ -11,10 +11,9 @@ locals {
     app_name      = local.safe_app_name_substr
     resource_type = "st"
   })))
-
-  needs_kv_role = length(local.app_secret_bindings) > 0
 }
 
+# TODO - allow BYO storage account
 resource "azurerm_storage_account" "function_app_storage" {
   name                     = local.st_name
   resource_group_name      = azurerm_resource_group.web_app.name

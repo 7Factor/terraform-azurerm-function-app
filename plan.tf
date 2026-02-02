@@ -7,8 +7,7 @@ resource "azurerm_service_plan" "web_app" {
   resource_group_name = local.resource_group.name
   location            = local.resource_group.location
   os_type             = "Linux"
-  sku_name            = var.service_plan_sku
-
+  sku_name            = var.use_flex_consumption ? "FC1" : var.service_plan_sku
   tags = merge(
     var.global_tags,
     {

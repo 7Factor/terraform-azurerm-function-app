@@ -101,8 +101,13 @@ variable "application_stack" {
   }
 
   validation {
-    condition     = can(var.use_flex_consumption && var.application_stack.runtime_name != "dotnet")
+    condition     = can(var.use_flex_consumption && var.application_stack.runtime_name == "dotnet")
     error_message = "dotnet is not a supported runtime when use_flex_consumption is enabled. Please use dotnet-isolated instead."
+  }
+
+  validation {
+    condition     = can(var.use_flex_consumption && var.application_stack.runtime_name == "custom")
+    error_message = "custom is not a supported runtime when use_flex_consumption is enabled."
   }
 
   validation {
@@ -149,8 +154,8 @@ variable "site_config" {
 
 variable "flex_settings" {
   type = object({
-    maximum_instance_count             = optional(number, 1)
-    instance_memory_in_mb              = optional(number, 1024)
+    maximum_instance_count = optional(number, 1)
+    instance_memory_in_mb  = optional(number, 1024)
   })
   default = {}
 }
@@ -164,9 +169,10 @@ variable "cors" {
 }
 
 variable "service_plan_sku" {
-  description = "App Service Plan size within the tier, e.g., B2."
+  description = "App Service Plan size within the tier. Defaults to B2, and is only used for non-flex consumption functions."
   type        = string
   default     = "B2"
+  nullable    = false
 }
 
 variable "service_plan_id" {
