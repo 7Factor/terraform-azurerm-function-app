@@ -133,9 +133,8 @@ resource "azurerm_function_app_flex_consumption" "web_app" {
   client_certificate_mode            = var.site_config.client_certificate_mode
   client_certificate_exclusion_paths = var.site_config.client_certificate_exclusion_paths
 
-  # todo - parameterize
-  maximum_instance_count = 50
-  instance_memory_in_mb  = 2048
+  maximum_instance_count = var.flex_settings.maximum_instance_count
+  instance_memory_in_mb  = var.flex_settings.instance_memory_in_mb
 
   identity {
     type = local.needs_managed_identity ? local.assigned_identity_type : "SystemAssigned"

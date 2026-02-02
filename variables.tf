@@ -147,6 +147,14 @@ variable "site_config" {
   default = {}
 }
 
+variable "flex_settings" {
+  type = object({
+    maximum_instance_count             = optional(number, 1)
+    instance_memory_in_mb              = optional(number, 1024)
+  })
+  default = {}
+}
+
 variable "cors" {
   type = object({
     allowed_origins     = optional(list(string))
