@@ -1,0 +1,300 @@
+locals {
+  needs_acr_role         = var.private_acr_id != null
+  needs_managed_identity = local.needs_kv_role || local.needs_acr_role
+
+  # Identity type to use if the service needs a user-assigned identity
+  assigned_identity_type = var.enable_system_assigned_identity ? "SystemAssigned, UserAssigned" : "UserAssigned"
+}
+
+resource "azurerm_user_assigned_identity" "web_app" {
+  count = local.needs_managed_identity ? 1 : 0
+
+  location            = local.resource_group.location
+  resource_group_name = local.resource_group.name
+  name = templatestring(var.resource_name_options.template, merge(local.name_template_vars, {
+    resource_type = "id"
+  }))
+}
+
+resource "azurerm_role_assignment" "acr_pull" {
+  count = local.needs_acr_role ? 1 : 0
+
+  scope                = var.private_acr_id
+  role_definition_name = "AcrPull"
+  principal_id         = azurerm_user_assigned_identity.web_app[0].principal_id
+}
+
+# Use this terraform_data resource as a proxy for var.app_settings, so we can see changes to app_settings even 
+# if some other values (like related to app insights or keyvault) are not known until after the terraform is applied
+resource "terraform_data" "app_settings" {
+  input = var.app_settings
+}
+
+resource "azurerm_linux_function_app" "web_app" {
+  count = var.use_flex_consumption ? 0 : 1
+
+  name = templatestring(var.resource_name_options.template, merge(local.name_template_vars, {
+    resource_type = "func"
+  }))
+  resource_group_name = local.resource_group.name
+  location            = local.resource_group.location
+  service_plan_id     = local.service_plan_id
+
+  storage_account_name       = azurerm_storage_account.function_app_storage.name
+  storage_account_access_key = azurerm_storage_account.function_app_storage.primary_access_key
+
+  https_only                         = var.site_config.https_only
+  client_certificate_enabled         = var.site_config.client_certificate_enabled
+  client_certificate_mode            = var.site_config.client_certificate_mode
+  client_certificate_exclusion_paths = var.site_config.client_certificate_exclusion_paths
+
+  identity {
+    type = local.needs_managed_identity ? local.assigned_identity_type : "SystemAssigned"
+    identity_ids = local.needs_managed_identity ? [
+      azurerm_user_assigned_identity.web_app[0].id
+    ] : null
+  }
+  
+  site_config {
+    application_insights_connection_string = azurerm_application_insights.web_app.connection_string
+    application_insights_key               = azurerm_application_insights.web_app.instrumentation_key
+
+    always_on                         = var.site_config.always_on
+    api_definition_url                = var.site_config.api_definition_url
+    api_management_api_id             = var.site_config.api_management_api_id
+    app_command_line                  = var.site_config.app_command_line
+    default_documents                 = var.site_config.default_documents
+    ftps_state                        = var.site_config.ftps_state
+    health_check_path                 = var.site_config.health_check_path
+    health_check_eviction_time_in_min = var.site_config.health_check_eviction_time_in_min
+    http2_enabled                     = var.site_config.http2_enabled
+    load_balancing_mode               = var.site_config.load_balancing_mode
+    minimum_tls_version               = var.site_config.minimum_tls_version
+    use_32_bit_worker                 = var.site_config.use_32_bit_worker
+    vnet_route_all_enabled            = var.site_config.vnet_route_all_enabled
+    websockets_enabled                = var.site_config.websockets_enabled
+    worker_count                      = var.site_config.worker_count
+
+    application_stack {
+      docker {
+        image_name        = var.application_stack.docker_image_name
+        image_tag         = var.application_stack.docker_image_tag
+        registry_url      = var.application_stack.docker_registry_url
+        registry_username = var.application_stack.docker_registry_username
+        registry_password = var.application_stack.docker_registry_password
+      }
+      dotnet_version              = contains(["dotnet", "dotnet-isolated"], var.application_stack.runtime_name) ? var.application_stack.runtime_version : null
+      use_dotnet_isolated_runtime = var.application_stack.runtime_name == "dotnet-isolated"
+      java_version                = var.application_stack.runtime_name == "java" ? var.application_stack.runtime_version : null
+      node_version                = var.application_stack.runtime_name == "node" ? var.application_stack.runtime_version : null
+      python_version              = var.application_stack.runtime_name == "python" ? var.application_stack.runtime_version : null
+      powershell_core_version     = var.application_stack.runtime_name == "powershell" ? var.application_stack.runtime_version : null
+      use_custom_runtime          = var.application_stack.runtime_name == "custom"
+    }
+
+    cors {
+      allowed_origins     = var.cors.allowed_origins
+      support_credentials = var.cors.support_credentials
+    }
+  }
+
+  app_settings = merge(
+    terraform_data.app_settings.input,
+    module.app_secrets.app_settings_bindings
+  )
+
+  tags = var.global_tags
+
+  depends_on = [
+    module.app_secrets
+  ]
+}
+
+resource "azurerm_function_app_flex_consumption" "web_app" {
+  count = var.use_flex_consumption ? 1 : 0
+
+  name = templatestring(var.resource_name_options.template, merge(local.name_template_vars, {
+    resource_type = "func"
+  }))
+  resource_group_name = local.resource_group.name
+  location            = local.resource_group.location
+  service_plan_id     = local.service_plan_id
+
+  runtime_name    = var.application_stack.runtime_name
+  runtime_version = var.application_stack.runtime_version
+
+  storage_container_type      = "blobContainer"
+  storage_container_endpoint  = "${azurerm_storage_account.function_app_storage.primary_blob_endpoint}${azurerm_storage_container.function_app_storage.name}"
+  storage_authentication_type = "StorageAccountConnectionString"
+  storage_access_key          = azurerm_storage_account.function_app_storage.primary_access_key
+
+  https_only                         = var.site_config.https_only
+  client_certificate_enabled         = var.site_config.client_certificate_enabled
+  client_certificate_mode            = var.site_config.client_certificate_mode
+  client_certificate_exclusion_paths = var.site_config.client_certificate_exclusion_paths
+
+  # todo - parameterize
+  maximum_instance_count = 50
+  instance_memory_in_mb  = 2048
+
+  identity {
+    type = local.needs_managed_identity ? local.assigned_identity_type : "SystemAssigned"
+    identity_ids = local.needs_managed_identity ? [
+      azurerm_user_assigned_identity.web_app[0].id
+    ] : null
+  }
+
+  site_config {
+    application_insights_connection_string = azurerm_application_insights.web_app.connection_string
+    application_insights_key               = azurerm_application_insights.web_app.instrumentation_key
+
+    api_definition_url                = var.site_config.api_definition_url
+    api_management_api_id             = var.site_config.api_management_api_id
+    app_command_line                  = var.site_config.app_command_line
+    default_documents                 = var.site_config.default_documents
+    health_check_path                 = var.site_config.health_check_path
+    health_check_eviction_time_in_min = var.site_config.health_check_eviction_time_in_min
+    http2_enabled                     = var.site_config.http2_enabled
+    load_balancing_mode               = var.site_config.load_balancing_mode
+    minimum_tls_version               = var.site_config.minimum_tls_version
+    use_32_bit_worker                 = var.site_config.use_32_bit_worker
+    vnet_route_all_enabled            = var.site_config.vnet_route_all_enabled
+    websockets_enabled                = var.site_config.websockets_enabled
+    worker_count                      = var.site_config.worker_count
+
+    cors {
+      allowed_origins     = var.cors.allowed_origins
+      support_credentials = var.cors.support_credentials
+    }
+  }
+
+  app_settings = merge(
+    terraform_data.app_settings.input,
+    module.app_secrets.app_settings_bindings
+  )
+
+  tags = var.global_tags
+
+  depends_on = [
+    module.app_secrets
+  ]
+}
+/*resource "azurerm_linux_web_app" "web_app" {
+  name = templatestring(var.resource_name_options.template, merge(local.name_template_vars, {
+    resource_type = "app"
+  }))
+  resource_group_name             = local.resource_group.name
+  location                        = local.resource_group.location
+  service_plan_id                 = local.service_plan_id
+  key_vault_reference_identity_id = local.needs_kv_role ? azurerm_user_assigned_identity.web_app[0].id : null
+  virtual_network_subnet_id       = var.site_config.virtual_network_subnet_id
+
+  https_only                         = var.site_config.https_only
+  client_affinity_enabled            = var.site_config.client_affinity_enabled
+  client_certificate_enabled         = var.site_config.client_certificate_enabled
+  client_certificate_mode            = var.site_config.client_certificate_mode
+  client_certificate_exclusion_paths = var.site_config.client_certificate_exclusion_paths
+
+  identity {
+    type = local.needs_managed_identity ? local.assigned_identity_type : "SystemAssigned"
+    identity_ids = local.needs_managed_identity ? [
+      azurerm_user_assigned_identity.web_app[0].id
+    ] : null
+  }
+
+  site_config {
+    always_on                         = var.site_config.always_on
+    api_definition_url                = var.site_config.api_definition_url
+    api_management_api_id             = var.site_config.api_management_api_id
+    app_command_line                  = var.site_config.app_command_line
+    default_documents                 = var.site_config.default_documents
+    ftps_state                        = var.site_config.ftps_state
+    health_check_path                 = var.site_config.health_check_path
+    health_check_eviction_time_in_min = var.site_config.health_check_eviction_time_in_min
+    http2_enabled                     = var.site_config.http2_enabled
+    load_balancing_mode               = var.site_config.load_balancing_mode
+    minimum_tls_version               = var.site_config.minimum_tls_version
+    use_32_bit_worker                 = var.site_config.use_32_bit_worker
+    vnet_route_all_enabled            = var.site_config.vnet_route_all_enabled
+    websockets_enabled                = var.site_config.websockets_enabled
+    worker_count                      = var.site_config.worker_count
+
+    container_registry_use_managed_identity       = local.needs_acr_role
+    container_registry_managed_identity_client_id = local.needs_acr_role ? azurerm_user_assigned_identity.web_app[0].client_id : null
+
+    application_stack {
+      docker_image_name        = var.application_stack.docker_image_name
+      docker_registry_url      = var.application_stack.docker_registry_url
+      docker_registry_username = var.application_stack.docker_registry_username
+      docker_registry_password = var.application_stack.docker_registry_password
+      dotnet_version           = var.application_stack.dotnet_version
+      go_version               = var.application_stack.go_version
+      java_server              = var.application_stack.java_server
+      java_server_version      = var.application_stack.java_server_version
+      java_version             = var.application_stack.java_version
+      node_version             = var.application_stack.node_version
+      php_version              = var.application_stack.php_version
+      python_version           = var.application_stack.python_version
+      ruby_version             = var.application_stack.ruby_version
+    }
+
+    cors {
+      allowed_origins     = var.cors.allowed_origins
+      support_credentials = var.cors.support_credentials
+    }
+  }
+
+  app_settings = merge(
+    terraform_data.app_settings.input,
+    {
+      "APPLICATIONINSIGHTS_CONNECTION_STRING" = azurerm_application_insights.web_app.connection_string
+    },
+    module.app_secrets.app_settings_bindings
+  )
+
+  tags = var.global_tags
+
+  lifecycle {
+    ignore_changes = [
+      # Ignore changes to these tags as they may be managed externally
+      tags["hidden-link: /app-insights-resource-id"],
+      zip_deploy_file
+    ]
+  }
+
+  depends_on = [
+    module.app_secrets
+  ]
+}*/
+
+// Only create diagnostic settings if a LAW is provided
+resource "azurerm_monitor_diagnostic_setting" "app_to_law" {
+  count = var.log_analytics_workspace_id == null ? 0 : 1
+
+  name = templatestring(var.resource_name_options.template, merge(local.name_template_vars, {
+    resource_type = "diag"
+  }))
+  target_resource_id         = azurerm_linux_web_app.web_app.id
+  log_analytics_workspace_id = var.log_analytics_workspace_id
+
+  dynamic "enabled_log" {
+    for_each = toset(var.diagnostic_log_category_groups)
+    content {
+      category_group = enabled_log.value
+    }
+  }
+
+  dynamic "enabled_log" {
+    for_each = toset(var.diagnostic_log_categories)
+    content {
+      category = enabled_log.value
+    }
+  }
+
+  dynamic "enabled_metric" {
+    for_each = toset(var.diagnostic_metric_categories)
+    content {
+      category = enabled_metric.value
+    }
+  }
+}
