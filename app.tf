@@ -124,7 +124,7 @@ resource "azurerm_function_app_flex_consumption" "web_app" {
   runtime_version = var.application_stack.runtime_version
 
   storage_container_type      = "blobContainer"
-  storage_container_endpoint  = "${azurerm_storage_account.function_app_storage.primary_blob_endpoint}${azurerm_storage_container.function_app_storage.name}"
+  storage_container_endpoint  = "${azurerm_storage_account.function_app_storage.primary_blob_endpoint}${azurerm_storage_container.function_app_storage[0].name}"
   storage_authentication_type = "StorageAccountConnectionString"
   storage_access_key          = azurerm_storage_account.function_app_storage.primary_access_key
 
@@ -179,6 +179,18 @@ resource "azurerm_function_app_flex_consumption" "web_app" {
   ]
 }
 
+resource "validation_warnings" "warns" {
+  warning {
+    condition = var.site_config.always_on != null && var.use_flex_consumption
+    summary   = "always_on is not supported when use_flex_consumption is enabled"
+  }
+
+  warning {
+    condition = var.site_config.ftps_state != null && var.use_flex_consumption
+    summary   = "ftps_state is not supported when use_flex_consumption is enabled"
+  }
+}
+
 // Only create diagnostic settings if a LAW is provided
 resource "azurerm_monitor_diagnostic_setting" "app_to_law" {
   count = var.log_analytics_workspace_id == null ? 0 : 1
@@ -186,7 +198,7 @@ resource "azurerm_monitor_diagnostic_setting" "app_to_law" {
   name = templatestring(var.resource_name_options.template, merge(local.name_template_vars, {
     resource_type = "diag"
   }))
-  target_resource_id         = azurerm_linux_web_app.web_app.id
+  target_resource_id         = var.use_flex_consumption ? azurerm_function_app_flex_consumption.web_app[0].id : azurerm_linux_function_app.web_app[0].id
   log_analytics_workspace_id = var.log_analytics_workspace_id
 
   dynamic "enabled_log" {
