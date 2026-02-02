@@ -44,7 +44,7 @@ variable "app_name" {
 }
 
 locals {
-  safe_app_name = replace(trim(lower(var.app_name), "-"), "/[^a-z0-9]/", "")
+  safe_app_name = replace(lower(var.app_name), "/[^a-z0-9]/", "")
 }
 
 variable "app_settings" {
