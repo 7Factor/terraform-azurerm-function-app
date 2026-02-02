@@ -6,9 +6,9 @@ locals {
     resource_type = "kv"
   }))
   kv_name_over_budget  = length(local.unsafe_kv_name) > local.kv_max_len ? length(local.unsafe_kv_name) - local.kv_max_len : 0
-  safe_app_name_substr = substr(local.safe_app_name, 0, length(local.safe_app_name) - local.kv_name_over_budget)
+  kv_safe_app_name_substr = substr(local.safe_app_name, 0, length(local.safe_app_name) - local.kv_name_over_budget)
   kv_name = templatestring(var.resource_name_options.template, merge({
-    app_name      = local.safe_app_name_substr
+    app_name      = local.kv_safe_app_name_substr
     resource_type = "kv"
   }))
 
