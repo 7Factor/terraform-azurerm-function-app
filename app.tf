@@ -56,8 +56,8 @@ resource "azurerm_linux_function_app" "web_app" {
   }
 
   site_config {
-    application_insights_connection_string = azurerm_application_insights.web_app.connection_string
-    application_insights_key               = azurerm_application_insights.web_app.instrumentation_key
+    application_insights_connection_string = local.app_insights.connection_string
+    application_insights_key               = local.app_insights.instrumentation_key
 
     always_on                         = var.site_config.always_on
     api_definition_url                = var.site_config.api_definition_url
@@ -144,8 +144,8 @@ resource "azurerm_function_app_flex_consumption" "web_app" {
   }
 
   site_config {
-    application_insights_connection_string = azurerm_application_insights.web_app.connection_string
-    application_insights_key               = azurerm_application_insights.web_app.instrumentation_key
+    application_insights_connection_string = local.app_insights.connection_string
+    application_insights_key               = local.app_insights.instrumentation_key
 
     api_definition_url                = var.site_config.api_definition_url
     api_management_api_id             = var.site_config.api_management_api_id

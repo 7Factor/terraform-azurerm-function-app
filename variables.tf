@@ -32,6 +32,12 @@ variable "resource_group_name" {
   default     = null
 }
 
+variable "app_insights_name" {
+  description = "(Optional) Existing Application Insights resource name. If this is not provided, a new Application Insights resource will be created automatically."
+  type        = string
+  default     = null
+}
+
 variable "location" {
   description = "Azure location for resources. If a resource_group_id is provided, this value is ignored."
   type        = string
