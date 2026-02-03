@@ -128,12 +128,12 @@ variable "application_stack" {
   }
 
   validation {
-    condition     = can(var.use_flex_consumption && var.application_stack.runtime_name == "dotnet")
+    condition     = can(var.use_flex_consumption && var.application_stack.runtime_name != "dotnet")
     error_message = "dotnet is not a supported runtime when use_flex_consumption is enabled. Please use dotnet-isolated instead."
   }
 
   validation {
-    condition     = can(var.use_flex_consumption && var.application_stack.runtime_name == "custom")
+    condition     = can(var.use_flex_consumption && var.application_stack.runtime_name != "custom")
     error_message = "custom is not a supported runtime when use_flex_consumption is enabled."
   }
 
@@ -268,4 +268,9 @@ variable "private_acr_id" {
   description = "Optional ID of a private ACR for pulling container images"
   type        = string
   default     = null
+
+  validation {
+    condition     = can(var.use_flex_consumption && var.private_acr_id == null)
+    error_message = "Containers are not supported when use_flex_consumption is enabled."
+  }
 }
