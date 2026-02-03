@@ -255,6 +255,15 @@ variable "key_vault" {
   default = {}
 }
 
+variable "storage" {
+  type = object({
+    existing_name           = optional(string, null)
+    existing_container_name = optional(string, null)
+    existing_rg_name        = optional(string, null)
+  })
+  default = {}
+}
+
 variable "private_acr_id" {
   description = "Optional ID of a private ACR for pulling container images"
   type        = string

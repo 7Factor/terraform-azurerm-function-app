@@ -13,8 +13,9 @@ locals {
   })))
 }
 
-# TODO - allow BYO storage account
 resource "azurerm_storage_account" "function_app_storage" {
+  count = var.storage.existing_name != null ? 0 : 1
+
   name                     = local.st_name
   resource_group_name      = local.resource_group.name
   location                 = local.resource_group.location
@@ -24,10 +25,32 @@ resource "azurerm_storage_account" "function_app_storage" {
   tags = var.global_tags
 }
 
+data "azurerm_storage_account" "existing_account" {
+  count = var.storage.existing_name != null ? 1 : 0
+
+  name                = var.storage.existing_name
+  resource_group_name = var.storage.existing_rg_name
+}
+
+locals {
+  function_app_storage_account = var.storage.existing_name != null ? data.azurerm_storage_account.existing_account[0] : azurerm_storage_account.function_app_storage[0]
+}
+
 resource "azurerm_storage_container" "function_app_storage" {
-  count = var.use_flex_consumption ? 1 : 0
+  count = var.use_flex_consumption && var.storage.existing_container_name != null ? 1 : 0
 
   name                  = "function-app-storage"
-  storage_account_id    = azurerm_storage_account.function_app_storage.id
+  storage_account_id    = local.function_app_storage_account.id
   container_access_type = "private"
+}
+
+data "azurerm_storage_container" "existing_container" {
+  count = var.use_flex_consumption && var.storage.existing_container_name != null ? 1 : 0
+
+  name               = var.storage.existing_container_name
+  storage_account_id = local.function_app_storage_account.id
+}
+
+locals {
+  function_app_storage_container = var.storage.existing_container_name != null ? data.azurerm_storage_container.existing_container[0] : azurerm_storage_container.function_app_storage[0]
 }

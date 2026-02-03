@@ -40,8 +40,8 @@ resource "azurerm_linux_function_app" "web_app" {
   location            = local.resource_group.location
   service_plan_id     = local.service_plan_id
 
-  storage_account_name       = azurerm_storage_account.function_app_storage.name
-  storage_account_access_key = azurerm_storage_account.function_app_storage.primary_access_key
+  storage_account_name       = local.function_app_storage_account.name
+  storage_account_access_key = local.function_app_storage_account.primary_access_key
 
   https_only                         = var.site_config.https_only
   client_certificate_enabled         = var.site_config.client_certificate_enabled
@@ -133,9 +133,9 @@ resource "azurerm_function_app_flex_consumption" "web_app" {
   runtime_version = var.application_stack.runtime_version
 
   storage_container_type      = "blobContainer"
-  storage_container_endpoint  = "${azurerm_storage_account.function_app_storage.primary_blob_endpoint}${azurerm_storage_container.function_app_storage[0].name}"
+  storage_container_endpoint  = "${local.function_app_storage_account.primary_blob_endpoint}${local.function_app_storage_container.name}"
   storage_authentication_type = "StorageAccountConnectionString"
-  storage_access_key          = azurerm_storage_account.function_app_storage.primary_access_key
+  storage_access_key          = local.function_app_storage_account.primary_access_key
 
   https_only                         = var.site_config.https_only
   client_certificate_enabled         = var.site_config.client_certificate_enabled
