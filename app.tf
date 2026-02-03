@@ -43,10 +43,11 @@ resource "azurerm_linux_function_app" "web_app" {
   storage_account_name       = local.function_app_storage_account.name
   storage_account_access_key = local.function_app_storage_account.primary_access_key
 
-  https_only                         = var.site_config.https_only
-  client_certificate_enabled         = var.site_config.client_certificate_enabled
-  client_certificate_mode            = var.site_config.client_certificate_mode
-  client_certificate_exclusion_paths = var.site_config.client_certificate_exclusion_paths
+  https_only                                     = var.site_config.https_only
+  client_certificate_enabled                     = var.site_config.client_certificate_enabled
+  client_certificate_mode                        = var.site_config.client_certificate_mode
+  client_certificate_exclusion_paths             = var.site_config.client_certificate_exclusion_paths
+  webdeploy_publish_basic_authentication_enabled = var.site_config.webdeploy_publish_basic_authentication_enabled
 
   identity {
     type = local.needs_managed_identity ? local.assigned_identity_type : "SystemAssigned"
@@ -137,10 +138,11 @@ resource "azurerm_function_app_flex_consumption" "web_app" {
   storage_authentication_type = "StorageAccountConnectionString"
   storage_access_key          = local.function_app_storage_account.primary_access_key
 
-  https_only                         = var.site_config.https_only
-  client_certificate_enabled         = var.site_config.client_certificate_enabled
-  client_certificate_mode            = var.site_config.client_certificate_mode
-  client_certificate_exclusion_paths = var.site_config.client_certificate_exclusion_paths
+  https_only                                     = var.site_config.https_only
+  client_certificate_enabled                     = var.site_config.client_certificate_enabled
+  client_certificate_mode                        = var.site_config.client_certificate_mode
+  client_certificate_exclusion_paths             = var.site_config.client_certificate_exclusion_paths
+  webdeploy_publish_basic_authentication_enabled = var.site_config.webdeploy_publish_basic_authentication_enabled
 
   maximum_instance_count = var.flex_settings.maximum_instance_count
   instance_memory_in_mb  = var.flex_settings.instance_memory_in_mb

@@ -155,26 +155,27 @@ variable "application_stack" {
 
 variable "site_config" {
   type = object({
-    always_on                          = optional(bool) # not supported on flex
-    api_definition_url                 = optional(string)
-    api_management_api_id              = optional(string)
-    app_command_line                   = optional(string)
-    client_certificate_enabled         = optional(bool)
-    client_certificate_exclusion_paths = optional(string)
-    client_certificate_mode            = optional(string)
-    default_documents                  = optional(list(string))
-    ftps_state                         = optional(string) # not supported on flex
-    health_check_path                  = optional(string)
-    health_check_eviction_time_in_min  = optional(number)
-    http2_enabled                      = optional(bool, true)
-    https_only                         = optional(bool)
-    load_balancing_mode                = optional(string)
-    minimum_tls_version                = optional(string)
-    use_32_bit_worker                  = optional(bool, false)
-    virtual_network_subnet_id          = optional(string)
-    vnet_route_all_enabled             = optional(bool)
-    websockets_enabled                 = optional(bool)
-    worker_count                       = optional(number)
+    always_on                                      = optional(bool) # not supported on flex
+    api_definition_url                             = optional(string)
+    api_management_api_id                          = optional(string)
+    app_command_line                               = optional(string)
+    client_certificate_enabled                     = optional(bool)
+    client_certificate_exclusion_paths             = optional(string)
+    client_certificate_mode                        = optional(string)
+    default_documents                              = optional(list(string))
+    ftps_state                                     = optional(string) # not supported on flex
+    health_check_path                              = optional(string)
+    health_check_eviction_time_in_min              = optional(number)
+    http2_enabled                                  = optional(bool, true)
+    https_only                                     = optional(bool)
+    load_balancing_mode                            = optional(string)
+    minimum_tls_version                            = optional(string)
+    use_32_bit_worker                              = optional(bool, false)
+    virtual_network_subnet_id                      = optional(string)
+    vnet_route_all_enabled                         = optional(bool)
+    webdeploy_publish_basic_authentication_enabled = optional(bool)
+    websockets_enabled                             = optional(bool)
+    worker_count                                   = optional(number)
   })
   default = {}
 }
