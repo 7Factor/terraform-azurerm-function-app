@@ -135,7 +135,7 @@ variable "application_stack" {
   }
 
   validation {
-    condition     = can(var.use_flex_consumption && !local.is_using_docker)
+    condition     = can(var.use_flex_consumption && var.application_stack.docker_image_name == null && var.application_stack.docker_image_tag == null && var.application_stack.docker_registry_url == null && var.application_stack.docker_registry_username == null && var.application_stack.docker_registry_password == null)
     error_message = "docker is not a supported runtime when use_flex_consumption is enabled."
   }
 
