@@ -161,7 +161,7 @@ variable "site_config" {
     client_certificate_exclusion_paths             = optional(string)
     client_certificate_mode                        = optional(string)
     default_documents                              = optional(list(string))
-    ftp_publish_basic_authentication_enabled       = optional(bool) # not supported on flex
+    ftp_publish_basic_authentication_enabled       = optional(bool)   # not supported on flex
     ftps_state                                     = optional(string) # not supported on flex
     health_check_path                              = optional(string)
     health_check_eviction_time_in_min              = optional(number)
@@ -169,7 +169,7 @@ variable "site_config" {
     https_only                                     = optional(bool)
     load_balancing_mode                            = optional(string)
     logs_disk_quota_mb                             = optional(number)
-    logs_retention_in_days                         = optional(number)
+    logs_retention_period_days                     = optional(number)
     minimum_tls_version                            = optional(string)
     runtime_scale_monitoring_enabled               = optional(bool)
     use_32_bit_worker                              = optional(bool, false)

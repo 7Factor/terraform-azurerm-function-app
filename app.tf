@@ -98,7 +98,7 @@ resource "azurerm_linux_function_app" "web_app" {
 
     app_service_logs {
       disk_quota_mb         = var.site_config.logs_disk_quota_mb
-      retention_period_days = var.site_config.logs_retention_in_days
+      retention_period_days = var.site_config.logs_retention_period_days
     }
 
     cors {
@@ -189,9 +189,9 @@ resource "azurerm_function_app_flex_consumption" "web_app" {
 
     app_service_logs {
       disk_quota_mb         = var.site_config.logs_disk_quota_mb
-      retention_period_days = var.site_config.logs_retention_in_days
+      retention_period_days = var.site_config.logs_retention_period_days
     }
-    
+
     cors {
       allowed_origins     = var.cors.allowed_origins
       support_credentials = var.cors.support_credentials
