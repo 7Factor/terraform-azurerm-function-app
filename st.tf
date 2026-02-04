@@ -52,5 +52,5 @@ data "azurerm_storage_container" "existing_container" {
 }
 
 locals {
-  function_app_storage_container = var.storage.existing_container_name != null ? data.azurerm_storage_container.existing_container[0] : azurerm_storage_container.function_app_storage[0]
+  function_app_storage_container = try(data.azurerm_storage_container.existing_container[0], azurerm_storage_container.function_app_storage[0], null)
 }
