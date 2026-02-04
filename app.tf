@@ -47,6 +47,8 @@ resource "azurerm_linux_function_app" "web_app" {
   client_certificate_enabled                     = var.site_config.client_certificate_enabled
   client_certificate_mode                        = var.site_config.client_certificate_mode
   client_certificate_exclusion_paths             = var.site_config.client_certificate_exclusion_paths
+  ftp_publish_basic_authentication_enabled       = var.site_config.ftp_publish_basic_authentication_enabled
+  virtual_network_subnet_id                      = var.site_config.virtual_network_subnet_id
   webdeploy_publish_basic_authentication_enabled = var.site_config.webdeploy_publish_basic_authentication_enabled
 
   identity {
@@ -71,6 +73,7 @@ resource "azurerm_linux_function_app" "web_app" {
     http2_enabled                     = var.site_config.http2_enabled
     load_balancing_mode               = var.site_config.load_balancing_mode
     minimum_tls_version               = var.site_config.minimum_tls_version
+    runtime_scale_monitoring_enabled  = var.site_config.runtime_scale_monitoring_enabled
     use_32_bit_worker                 = var.site_config.use_32_bit_worker
     vnet_route_all_enabled            = var.site_config.vnet_route_all_enabled
     websockets_enabled                = var.site_config.websockets_enabled
@@ -93,6 +96,11 @@ resource "azurerm_linux_function_app" "web_app" {
       use_custom_runtime          = var.application_stack.runtime_name == "custom"
     }
 
+    app_service_logs {
+      disk_quota_mb         = var.site_config.logs_disk_quota_mb
+      retention_period_days = var.site_config.logs_retention_in_days
+    }
+
     cors {
       allowed_origins     = var.cors.allowed_origins
       support_credentials = var.cors.support_credentials
@@ -100,7 +108,7 @@ resource "azurerm_linux_function_app" "web_app" {
   }
 
   sticky_settings {
-    app_setting_names = var.sticky_settings.app_setting_names
+    app_setting_names       = var.sticky_settings.app_setting_names
     connection_string_names = var.sticky_settings.connection_string_names
   }
 
@@ -147,6 +155,7 @@ resource "azurerm_function_app_flex_consumption" "web_app" {
   client_certificate_enabled                     = var.site_config.client_certificate_enabled
   client_certificate_mode                        = var.site_config.client_certificate_mode
   client_certificate_exclusion_paths             = var.site_config.client_certificate_exclusion_paths
+  virtual_network_subnet_id                      = var.site_config.virtual_network_subnet_id
   webdeploy_publish_basic_authentication_enabled = var.site_config.webdeploy_publish_basic_authentication_enabled
 
   maximum_instance_count = var.flex_settings.maximum_instance_count
@@ -172,11 +181,17 @@ resource "azurerm_function_app_flex_consumption" "web_app" {
     http2_enabled                     = var.site_config.http2_enabled
     load_balancing_mode               = var.site_config.load_balancing_mode
     minimum_tls_version               = var.site_config.minimum_tls_version
+    runtime_scale_monitoring_enabled  = var.site_config.runtime_scale_monitoring_enabled
     use_32_bit_worker                 = var.site_config.use_32_bit_worker
     vnet_route_all_enabled            = var.site_config.vnet_route_all_enabled
     websockets_enabled                = var.site_config.websockets_enabled
     worker_count                      = var.site_config.worker_count
 
+    app_service_logs {
+      disk_quota_mb         = var.site_config.logs_disk_quota_mb
+      retention_period_days = var.site_config.logs_retention_in_days
+    }
+    
     cors {
       allowed_origins     = var.cors.allowed_origins
       support_credentials = var.cors.support_credentials
@@ -184,7 +199,7 @@ resource "azurerm_function_app_flex_consumption" "web_app" {
   }
 
   sticky_settings {
-    app_setting_names = var.sticky_settings.app_setting_names
+    app_setting_names       = var.sticky_settings.app_setting_names
     connection_string_names = var.sticky_settings.connection_string_names
   }
 
@@ -213,6 +228,16 @@ resource "validation_warnings" "warns" {
   warning {
     condition = var.site_config.always_on != null && var.use_flex_consumption
     summary   = "always_on is not supported when use_flex_consumption is enabled"
+  }
+
+  warning {
+    condition = var.site_config.builtin_logging_enabled != null && var.use_flex_consumption
+    summary   = "builtin_logging_enabled is not supported when use_flex_consumption is enabled"
+  }
+
+  warning {
+    condition = var.site_config.ftp_publish_basic_authentication_enabled != null && var.use_flex_consumption
+    summary   = "ftp_publish_basic_authentication_enabled is not supported when use_flex_consumption is enabled"
   }
 
   warning {

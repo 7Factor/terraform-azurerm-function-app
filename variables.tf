@@ -20,7 +20,13 @@ variable "resource_name_options" {
   }
 }
 
+variable "app_name" {
+  description = "Base name for the App Service (combined with prefix)."
+  type        = string
+}
+
 locals {
+  safe_app_name = replace(lower(var.app_name), "/[^a-z0-9]/", "")
   name_template_vars = {
     app_name = var.app_name
   }
@@ -42,15 +48,6 @@ variable "location" {
   description = "Azure location for resources. If a resource_group_id is provided, this value is ignored."
   type        = string
   default     = "eastus2"
-}
-
-variable "app_name" {
-  description = "Base name for the App Service (combined with prefix)."
-  type        = string
-}
-
-locals {
-  safe_app_name = replace(lower(var.app_name), "/[^a-z0-9]/", "")
 }
 
 variable "app_settings" {
@@ -159,17 +156,22 @@ variable "site_config" {
     api_definition_url                             = optional(string)
     api_management_api_id                          = optional(string)
     app_command_line                               = optional(string)
+    builtin_logging_enabled                        = optional(bool) # not supported on flex
     client_certificate_enabled                     = optional(bool)
     client_certificate_exclusion_paths             = optional(string)
     client_certificate_mode                        = optional(string)
     default_documents                              = optional(list(string))
+    ftp_publish_basic_authentication_enabled       = optional(bool) # not supported on flex
     ftps_state                                     = optional(string) # not supported on flex
     health_check_path                              = optional(string)
     health_check_eviction_time_in_min              = optional(number)
     http2_enabled                                  = optional(bool, true)
     https_only                                     = optional(bool)
     load_balancing_mode                            = optional(string)
+    logs_disk_quota_mb                             = optional(number)
+    logs_retention_in_days                         = optional(number)
     minimum_tls_version                            = optional(string)
+    runtime_scale_monitoring_enabled               = optional(bool)
     use_32_bit_worker                              = optional(bool, false)
     virtual_network_subnet_id                      = optional(string)
     vnet_route_all_enabled                         = optional(bool)
