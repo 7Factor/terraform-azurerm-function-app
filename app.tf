@@ -99,6 +99,11 @@ resource "azurerm_linux_function_app" "web_app" {
     }
   }
 
+  sticky_settings {
+    app_setting_names = var.sticky_settings.app_setting_names
+    connection_string_names = var.sticky_settings.connection_string_names
+  }
+
   dynamic "connection_string" {
     for_each = var.connection_strings
     content {
@@ -176,6 +181,11 @@ resource "azurerm_function_app_flex_consumption" "web_app" {
       allowed_origins     = var.cors.allowed_origins
       support_credentials = var.cors.support_credentials
     }
+  }
+
+  sticky_settings {
+    app_setting_names = var.sticky_settings.app_setting_names
+    connection_string_names = var.sticky_settings.connection_string_names
   }
 
   dynamic "connection_string" {

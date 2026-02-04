@@ -265,6 +265,15 @@ variable "storage" {
   default = {}
 }
 
+variable "sticky_settings" {
+  description = "List of app settings names that should be marked as sticky (slot settings)."
+  type = object({
+    app_setting_names       = optional(list(string))
+    connection_string_names = optional(list(string))
+  })
+  default = {}
+}
+
 variable "private_acr_id" {
   description = "Optional ID of a private ACR for pulling container images"
   type        = string
