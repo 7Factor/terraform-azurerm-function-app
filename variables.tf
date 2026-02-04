@@ -135,7 +135,7 @@ variable "application_stack" {
   }
 
   validation {
-    condition     = can(var.use_flex_consumption && var.application_stack.docker_image_name == null && var.application_stack.docker_image_tag == null && var.application_stack.docker_registry_url == null && var.application_stack.docker_registry_username == null && var.application_stack.docker_registry_password == null)
+    condition     = can(var.use_flex_consumption && !local.is_using_docker)
     error_message = "docker is not a supported runtime when use_flex_consumption is enabled."
   }
 
@@ -148,6 +148,10 @@ variable "application_stack" {
     condition     = can(var.use_flex_consumption && var.application_stack.runtime_version != null)
     error_message = "application_stack.runtime_version is required when use_flex_consumption is enabled"
   }
+}
+
+locals {
+  is_using_docker = var.application_stack.docker_image_name != null || var.application_stack.docker_image_tag != null || var.application_stack.docker_registry_url != null || var.application_stack.docker_registry_username != null || var.application_stack.docker_registry_password != null
 }
 
 variable "site_config" {

@@ -80,20 +80,23 @@ resource "azurerm_linux_function_app" "web_app" {
     worker_count                      = var.site_config.worker_count
 
     application_stack {
-      docker {
-        image_name        = var.application_stack.docker_image_name
-        image_tag         = var.application_stack.docker_image_tag
-        registry_url      = var.application_stack.docker_registry_url
-        registry_username = var.application_stack.docker_registry_username
-        registry_password = var.application_stack.docker_registry_password
+      dynamic "docker" {
+        for_each = local.is_using_docker ? [var.application_stack] : []
+        content {
+          image_name        = docker.value.docker_image_name
+          image_tag         = docker.value.docker_image_tag
+          registry_url      = docker.value.docker_registry_url
+          registry_username = docker.value.docker_registry_username
+          registry_password = docker.value.docker_registry_password
+        }
       }
       dotnet_version              = contains(["dotnet", "dotnet-isolated"], var.application_stack.runtime_name) ? var.application_stack.runtime_version : null
-      use_dotnet_isolated_runtime = var.application_stack.runtime_name == "dotnet-isolated"
+      use_dotnet_isolated_runtime = var.application_stack.runtime_name == "dotnet-isolated" ? true : null
       java_version                = var.application_stack.runtime_name == "java" ? var.application_stack.runtime_version : null
       node_version                = var.application_stack.runtime_name == "node" ? var.application_stack.runtime_version : null
       python_version              = var.application_stack.runtime_name == "python" ? var.application_stack.runtime_version : null
       powershell_core_version     = var.application_stack.runtime_name == "powershell" ? var.application_stack.runtime_version : null
-      use_custom_runtime          = var.application_stack.runtime_name == "custom"
+      use_custom_runtime          = var.application_stack.runtime_name == "custom" ? true : null
     }
 
     app_service_logs {
