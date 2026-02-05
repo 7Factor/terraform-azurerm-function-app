@@ -43,6 +43,7 @@ resource "azurerm_linux_function_app" "web_app" {
   storage_account_name       = local.function_app_storage_account.name
   storage_account_access_key = local.function_app_storage_account.primary_access_key
 
+  builtin_logging_enabled                        = var.site_config.builtin_logging_enabled
   https_only                                     = var.site_config.https_only
   client_certificate_enabled                     = var.site_config.client_certificate_enabled
   client_certificate_mode                        = var.site_config.client_certificate_mode
