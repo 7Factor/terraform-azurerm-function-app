@@ -228,7 +228,7 @@ resource "azurerm_function_app_flex_consumption" "web_app" {
   ]
 }
 
-resource "validation_warnings" "warns" {
+data "validation_warnings" "flex_consumption_warnings" {
   warning {
     condition = var.site_config.always_on != null && var.use_flex_consumption
     summary   = "always_on is not supported when use_flex_consumption is enabled"
