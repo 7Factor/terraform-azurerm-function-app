@@ -16,9 +16,8 @@ locals {
 }
 
 module "app_secrets" {
-  source = "git::https://github.com/7Factor/terraform-azurerm-app-secrets?ref=feature%2Ffix-app-setting-name-null-empty-check"
-  # source  = "7Factor/app-secrets/azurerm"
-  # version = "~> 1.0"
+  source  = "7Factor/app-secrets/azurerm"
+  version = "~> 1.0"
 
   app_secrets = var.app_secrets
 
