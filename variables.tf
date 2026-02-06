@@ -193,6 +193,17 @@ variable "flex_settings" {
   default = {}
 }
 
+variable "ip_restrictions" {
+  description = "List of IP restrictions for the function app"
+  type = list(object({
+    name        = string
+    ip_address  = string
+    action      = string
+    priority    = number
+  }))
+  default = []
+}
+
 variable "cors" {
   type = object({
     allowed_origins     = optional(list(string))

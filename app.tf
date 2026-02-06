@@ -109,6 +109,16 @@ resource "azurerm_linux_function_app" "web_app" {
       allowed_origins     = var.cors.allowed_origins
       support_credentials = var.cors.support_credentials
     }
+
+    dynamic "ip_restriction" {
+      for_each = var.ip_restrictions
+      content {
+        name       = ip_restriction.value.name
+        ip_address = ip_restriction.value.ip_address
+        action     = ip_restriction.value.action
+        priority   = ip_restriction.value.priority
+      }
+    }
   }
 
   sticky_settings {
@@ -199,6 +209,16 @@ resource "azurerm_function_app_flex_consumption" "web_app" {
     cors {
       allowed_origins     = var.cors.allowed_origins
       support_credentials = var.cors.support_credentials
+    }
+
+    dynamic "ip_restriction" {
+      for_each = var.ip_restrictions
+      content {
+        name       = ip_restriction.value.name
+        ip_address = ip_restriction.value.ip_address
+        action     = ip_restriction.value.action
+        priority   = ip_restriction.value.priority
+      }
     }
   }
 
