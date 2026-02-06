@@ -280,7 +280,7 @@ variable "sticky_settings" {
     app_setting_names       = optional(list(string))
     connection_string_names = optional(list(string))
   })
-  default = {}
+  default = null
 }
 
 variable "private_acr_id" {
