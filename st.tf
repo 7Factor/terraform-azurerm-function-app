@@ -29,7 +29,7 @@ data "azurerm_storage_account" "existing_account" {
   count = var.storage.existing_name != null ? 1 : 0
 
   name                = var.storage.existing_name
-  resource_group_name = var.storage.existing_rg_name
+  resource_group_name = var.storage.existing_rg_name != null ? var.storage.existing_rg_name : local.resource_group.name
 }
 
 locals {
