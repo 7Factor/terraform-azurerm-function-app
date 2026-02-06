@@ -121,9 +121,12 @@ resource "azurerm_linux_function_app" "web_app" {
     }
   }
 
-  sticky_settings {
-    app_setting_names       = var.sticky_settings.app_setting_names
-    connection_string_names = var.sticky_settings.connection_string_names
+  dynamic "sticky_settings" {
+    for_each = var.sticky_settings != null ? [var.sticky_settings] : []
+    content {
+      app_setting_names       = sticky_settings.value.app_setting_names
+      connection_string_names = sticky_settings.value.connection_string_names
+    }
   }
 
   dynamic "connection_string" {
@@ -222,9 +225,12 @@ resource "azurerm_function_app_flex_consumption" "web_app" {
     }
   }
 
-  sticky_settings {
-    app_setting_names       = var.sticky_settings.app_setting_names
-    connection_string_names = var.sticky_settings.connection_string_names
+  dynamic "sticky_settings" {
+    for_each = var.sticky_settings != null ? [var.sticky_settings] : []
+    content {
+      app_setting_names       = sticky_settings.value.app_setting_names
+      connection_string_names = sticky_settings.value.connection_string_names
+    }
   }
 
   dynamic "connection_string" {
