@@ -72,6 +72,7 @@ resource "azurerm_linux_function_app" "web_app" {
     health_check_path                 = var.site_config.health_check_path
     health_check_eviction_time_in_min = var.site_config.health_check_eviction_time_in_min
     http2_enabled                     = var.site_config.http2_enabled
+    ip_restriction_default_action     = var.site_config.ip_restriction_default_action
     load_balancing_mode               = var.site_config.load_balancing_mode
     minimum_tls_version               = var.site_config.minimum_tls_version
     runtime_scale_monitoring_enabled  = var.site_config.runtime_scale_monitoring_enabled
@@ -196,6 +197,7 @@ resource "azurerm_function_app_flex_consumption" "web_app" {
     health_check_path                 = var.site_config.health_check_path
     health_check_eviction_time_in_min = var.site_config.health_check_eviction_time_in_min
     http2_enabled                     = var.site_config.http2_enabled
+    ip_restriction_default_action     = var.site_config.ip_restriction_default_action
     load_balancing_mode               = var.site_config.load_balancing_mode
     minimum_tls_version               = var.site_config.minimum_tls_version
     runtime_scale_monitoring_enabled  = var.site_config.runtime_scale_monitoring_enabled

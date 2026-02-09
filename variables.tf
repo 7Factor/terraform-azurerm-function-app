@@ -163,6 +163,7 @@ variable "site_config" {
     health_check_eviction_time_in_min              = optional(number)
     http2_enabled                                  = optional(bool, true)
     https_only                                     = optional(bool)
+    ip_restriction_default_action                  = optional(string)
     load_balancing_mode                            = optional(string)
     logs_disk_quota_mb                             = optional(number)
     logs_retention_period_days                     = optional(number)
