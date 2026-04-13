@@ -7,7 +7,7 @@ locals {
   }))
   st_name_over_budget     = length(local.unsafe_st_name) > local.st_max_len ? length(local.unsafe_st_name) - local.st_max_len : 0
   st_safe_app_name_substr = substr(local.safe_app_name, 0, length(local.safe_app_name) - local.st_name_over_budget)
-  st_name = lower(templatestring(var.resource_name_options.template, merge({
+  st_name = lower(templatestring(var.resource_name_options.template_safe, merge({
     app_name      = local.st_safe_app_name_substr
     resource_type = "st"
   })))
