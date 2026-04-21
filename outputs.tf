@@ -4,7 +4,7 @@ output "function_app" {
 
 output "service_plan_id" {
   value = local.service_plan_id
-} 
+}
 
 output "application_insights" {
   value = local.app_insights
