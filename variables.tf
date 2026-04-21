@@ -190,10 +190,10 @@ variable "flex_settings" {
 variable "ip_restrictions" {
   description = "List of IP restrictions for the function app"
   type = list(object({
-    name        = string
-    ip_address  = string
-    action      = string
-    priority    = number
+    name       = string
+    ip_address = string
+    action     = string
+    priority   = number
   }))
   default = []
 }
