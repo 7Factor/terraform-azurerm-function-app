@@ -43,6 +43,8 @@ resource "azurerm_linux_function_app" "web_app" {
   storage_account_name       = local.function_app_storage_account.name
   storage_account_access_key = local.function_app_storage_account.primary_access_key
 
+  key_vault_reference_identity_id = local.needs_kv_role ? azurerm_user_assigned_identity.web_app[0].id : null
+
   builtin_logging_enabled                        = var.site_config.builtin_logging_enabled
   https_only                                     = var.site_config.https_only
   client_certificate_enabled                     = var.site_config.client_certificate_enabled
